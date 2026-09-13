@@ -12,21 +12,6 @@ Works with either OpenAI or a local Ollama model — configurable, no code chang
 4. All scraped content is combined into a prompt and sent to the LLM to write the brochure.
 5. The result is written to `brochure.md`.
 
-## Project structure
-
-```
-main.py                  # orchestration: prompt loading, LLM calls, brochure generation
-scraper.py                # WebsiteScraper: fetches page text and links via requests + BeautifulSoup
-config/llm_config.yaml    # provider config (OpenAI vs Ollama), model names, base URLs
-prompts/                  # prompt templates (.txt.j2, filled with str.format())
-  link_system_prompt.txt.j2
-  link_user_prompt.txt.j2
-  brochure_system_prompt.txt.j2
-  brochure_user_prompt.txt.j2
-.env.example               # template for required environment variables
-brochure.md                 # output file (generated on each run)
-```
-
 ## Setup
 
 Requires Python 3.14+ and [uv](https://docs.astral.sh/uv/).
@@ -69,28 +54,5 @@ providers:
 
 Add more providers/models by adding entries here — no code changes required.
 
-## Usage
-
-Edit the company name, URL, and provider at the bottom of `main.py`:
-
-```python
-if __name__ == '__main__':
-    provider_config = load_provider_config("ollama")  # or "openai", or None to use default_provider
-    model = provider_config["model"]
-    client = OpenAI(base_url=provider_config["base_url"], api_key=provider_config["api_key"])
-
-    create_brochure("HuggingFace", "https://huggingface.co", model, client)
-```
-
-Then run:
-
-```bash
-uv run main.py
-```
 
 The generated brochure is written to `brochure.md` in the project root.
-
-## Notes
-
-- Local models (e.g. Ollama's llama3.2) are more prone to hallucinating or mangling URLs than larger hosted models — the scraper silently skips any link it can't fetch rather than crashing.
-- Scraped content is truncated (2,000 chars per page, 5,000 chars total for the brochure prompt) to keep prompts within reasonable size.
