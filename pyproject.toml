@@ -7,5 +7,6 @@ dependencies = [
     "dotenv>=0.9.9",
     "ipython>=9.17.1",
     "openai>=3.13.0",
+    "pyyaml>=6.0.3",
     "requests>=2.34.2",
 ]

@@ -20,7 +20,11 @@ class WebsiteScraper:
     def fetch_website_contents(self,url):
         """Return title and contents of website
         Truncates the data to 2000 characters limit"""
-        soup = self.get_soup_content(url)
+        try:
+            soup = self.get_soup_content(url)
+        except requests.exceptions.RequestException as e:
+            print(f"  [skipped] Could not fetch {url}: {e}")
+            return ""
         title = soup.title.string if soup.title else "No Title found"
         if soup.body:
             for irrelevant in soup.body(["script", "style", "img", "input"]):
