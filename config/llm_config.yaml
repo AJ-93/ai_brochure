@@ -1,0 +1,12 @@
+default_provider: openai
+
+providers:
+  openai:
+    base_url: null
+    api_key_env: OPENAI_API_KEY
+    model: gpt-5-nano
+
+  ollama:
+    base_url: http://localhost:11434/v1
+    api_key_env: null
+    model: llama3.2
