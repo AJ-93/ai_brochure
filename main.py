@@ -16,13 +16,15 @@ openai = OpenAI()
 
 WEBSITE_FOR_BROCHURE = "https://edwarddonner.com"
 
+scraper = WebsiteScraper()
+
 def load_prompt(filename: str, **kwargs) -> str:
     template = (PROMPTS_DIR / filename).read_text()
     return template.format(**kwargs)
 
 def get_link_user_prompt(url):
     user_prompt = load_prompt("link_user_prompt.txt.j2", url=url)
-    links_of_the_website = WebsiteScraper.fetch_website_links(url)
+    links_of_the_website = scraper.fetch_website_links(url)
     user_prompt += "\n".join(links_of_the_website)
     return user_prompt
 
@@ -31,23 +33,23 @@ def select_relevant_links(url):
     response = openai.chat.completions.create(
         model=MODEL,
         messages=[
-            {"role":"system", "content": load_prompt("link_system_prompt.txt.j2")},
+            {"role":"system", "content": (PROMPTS_DIR / "link_system_prompt.txt.j2").read_text()},
             {"role":"user", "content": get_link_user_prompt(url)},
         ],
         response_format={"type":"json_object"}
     )
     results = response.choices[0].message.content
     relevant_links = json.loads(results)
-    print(f"Found {len(relevant_links['relevant_links'])} relevant links")
+    print(f"Found {len(relevant_links['links'])} relevant links")
     return relevant_links
 
 def fetch_webpage_and_relevant_links(url):
-    website_content = WebsiteScraper.fetch_website_contents(url)
+    website_content = scraper.fetch_website_contents(url)
     relevant_links = select_relevant_links(url)
     result = f"## Landing Page:\n\n{website_content}\n## Relevant Links:\n"
-    for link in relevant_links['relevant_links']:
+    for link in relevant_links['links']:
         result += f"\n\n### Link: {link['type']}\n"
-        result += WebsiteScraper.fetch_website_contents(link['url'])
+        result += scraper.fetch_website_contents(link['url'])
     return result
 
 def get_brochure_user_prompt(company_name, url):
@@ -67,7 +69,8 @@ def create_brochure(company_name, url):
         ],
     )
     results = response.choices[0].message.content
-    display(Markdown(results))
+    with open("brochure.md", "w") as f:
+        f.write(results)
 
 
 if __name__ == '__main__':
